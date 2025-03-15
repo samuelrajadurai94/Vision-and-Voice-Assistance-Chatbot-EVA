@@ -3,6 +3,7 @@ import gradio as gr
 import time
 import shutil
 from playsound import playsound
+from gradio.data_classes import FileData
 
 #from gradio import ChatMessage
 from Image_Analysing_Model import encode_image,analyse_image_with_query,process_text_only
@@ -24,19 +25,9 @@ system_prompt2 = '''If No Image provided for u , You have to give response for t
             Keep your answer concise (max 2 sentences). No preamble, start your answer right away please"""'''
 
 
-i=1
-def save_input_audio(mic_audio):
-    if not mic_audio:
-        return None   
-    # Generate a unique filename using timestamp
-    input_audio_save_path = f"USER_INPUT_VOICE/recorded_audio_{int(time.time())}.wav"    
-    # Copy the recorded file to the saved location
-    shutil.copy(mic_audio, input_audio_save_path)   
-    return input_audio_save_path
 
 def process_inputs(audio_filepath, text_input, image_filepath, chat_history):
-    global i
-    i+=1
+
     transcript=''
     if audio_filepath:
 
@@ -64,20 +55,24 @@ def process_inputs(audio_filepath, text_input, image_filepath, chat_history):
     #voice_reply = text_to_speech_elevenlabs(input_text=reply)
     voice_reply = text_to_speech_with_gtts(reply)
     if audio_filepath:
-        globals()[f'voice_reply_{i}']=audio_filepath     
-        chat_history.append({"role": "user", "content": gr.Audio(globals()[f'voice_reply_{i}'])})
-        i+=1
+        chat_history.append({"role": "user",
+                             "content": gr.Audio(audio_filepath,type='filepath',
+                                                                waveform_options=gr.WaveformOptions(show_recording_waveform=False))})
+        #"content": [{"file": FileData(path=audio_filepath)}] })
+                                 
+        #"content": gr.Audio(audio_filepath,type='filepath',waveform_options=gr.WaveformOptions(show_recording_waveform=False))})
+        #chat_history.append(("user", (None, audio_filepath)))    
+
     chat_history.append({"role": "user", "content": user_message})
     if image_filepath:
-        chat_history.append({"role": "user", "content":gr.File(image_filepath)})
-    
-    globals()[f'voice_reply_{i}']=voice_reply
+        chat_history.append({"role": "user", "content":gr.Image(image_filepath,type='filepath')})
 
-    chat_history.append({"role": "assistant", "content": gr.Audio(globals()[f'voice_reply_{i}'])})
-
+    chat_history.append({"role": "assistant", "content": gr.Audio(voice_reply,type='filepath',
+                                                                waveform_options=gr.WaveformOptions(show_recording_waveform=False))}) 
+    #chat_history.append(("assistant", voice_reply))
     chat_history.append({"role": "assistant", "content": reply})
     
-    return chat_history,globals()[f'voice_reply_{i}'], None, "", None
+    return chat_history,voice_reply, None, "", None
 
 
 
@@ -97,21 +92,6 @@ def chatbot_ui():
         }
         
               
-        .user-message {
-            background-color: #3E8ACC; /* Blue for User */
-            padding: 10px;
-            border-radius: 10px;
-            margin: 5px 0;
-            color: #101010;
-            text-align: right;
-        }
-        .ai-message {
-            background-color: #5C5CFF; /* Purple for AI */
-            padding: 10px;
-            border-radius: 10px;
-            margin: 5px 0;
-            color: #101010;
-            text-align: left;
         }
         .audio-box {background-color: #FFDDC1; padding: 10px;min-height: 100px; border-radius: 10px;
                     max-height: 200px;overflow: auto;}
