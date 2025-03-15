@@ -51,15 +51,13 @@ def record_audio(file_path, timeout=20, phrase_time_limit=None):
 from groq import Groq
 
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
-stt_model = 'whisper-large-v3'
+client_groq = Groq(api_key = GROQ_API_KEY)
 
-def transcribe_with_groq(stt_model,audio_filepath,GROQ_API_KEY):
-    client = Groq(api_key = GROQ_API_KEY)
-    print('\nai1\n')
+def transcribe_with_groq(audio_filepath):
+    #client = Groq(api_key = GROQ_API_KEY)
     audio_file =open(audio_filepath,'rb')
-    print('\nai2\n')
-    transcription = client.audio.transcriptions.create(
-        model=stt_model,
+    transcription = client_groq.audio.transcriptions.create(
+        model='whisper-large-v3',
         file = audio_file,
         language='en'
     )
@@ -67,13 +65,6 @@ def transcribe_with_groq(stt_model,audio_filepath,GROQ_API_KEY):
     return transcription.text
 
 
-def record_audio_with_streamlit(audio_bytes):
-    # Convert recorded audio (WAV) to MP3
-    audio = AudioSegment.from_wav(BytesIO(audio_bytes)) 
-    if os.path.exists("recorded_audio_input.mp3"):
-        os.remove("recorded_audio_input.mp3") 
-    mp3_filename = "recorded_audio_input.mp3"
-    audio.export(mp3_filename, format="mp3",bitrate="128k")
-    return mp3_filename
+
 
     

@@ -1,2 +1,8 @@
-playsound==1.2.2
+gradio
+groq
+elevenlabs
 gtts
+SpeechRecognition
+playsound==1.2.2
+pydub
+#install ffmpeg from web source (binary package)

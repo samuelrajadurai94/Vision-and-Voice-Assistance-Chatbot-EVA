@@ -1,13 +1,13 @@
 import os
 import gradio as gr
 import time
-import shutil
-from playsound import playsound
+#import shutil
+#from playsound import playsound
 from gradio.data_classes import FileData
 
 #from gradio import ChatMessage
 from Image_Analysing_Model import encode_image,analyse_image_with_query,process_text_only
-from Users_Voice_to_text import record_audio,transcribe_with_groq
+from Users_Voice_to_text import transcribe_with_groq
 from TTS_Text_to_speech_model import text_to_speech_elevenlabs,text_to_speech_with_gtts
 
 system_prompt="""You have to act as a professional doctor. 
@@ -25,30 +25,26 @@ system_prompt2 = '''If No Image provided for u , You have to give response for t
             Keep your answer concise (max 2 sentences). No preamble, start your answer right away please"""'''
 
 
+#GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
+#stt_model = 'whisper-large-v3'
 
 def process_inputs(audio_filepath, text_input, image_filepath, chat_history):
 
     transcript=''
     if audio_filepath:
 
-        transcript = transcribe_with_groq(
-            GROQ_API_KEY=os.environ.get("GROQ_API_KEY"),
-            audio_filepath=audio_filepath,
-            stt_model="whisper-large-v3"
-        )
+        transcript = transcribe_with_groq(audio_filepath=audio_filepath)
                 
     user_message = transcript if transcript else text_input
     
     if image_filepath:
         reply = analyse_image_with_query(
             query=system_prompt + user_message,
-            encoded_image=encode_image(image_filepath),
-            model="llama-3.2-11b-vision-preview"
+            encoded_image=encode_image(image_filepath)
         )
     else:
         reply = process_text_only(
-            query=system_prompt2 + user_message,
-            model="llama-3.2-11b-vision-preview"
+            query=system_prompt2 + user_message
         )  # Function to generate LLM response
     
 
@@ -56,8 +52,7 @@ def process_inputs(audio_filepath, text_input, image_filepath, chat_history):
     voice_reply = text_to_speech_with_gtts(reply)
     if audio_filepath:
         chat_history.append({"role": "user",
-                             "content": gr.Audio(audio_filepath,type='filepath',
-                                                                waveform_options=gr.WaveformOptions(show_recording_waveform=False))})
+                             "content": gr.Audio(audio_filepath,type='filepath')})
         #"content": [{"file": FileData(path=audio_filepath)}] })
                                  
         #"content": gr.Audio(audio_filepath,type='filepath',waveform_options=gr.WaveformOptions(show_recording_waveform=False))})
@@ -67,8 +62,7 @@ def process_inputs(audio_filepath, text_input, image_filepath, chat_history):
     if image_filepath:
         chat_history.append({"role": "user", "content":gr.Image(image_filepath,type='filepath')})
 
-    chat_history.append({"role": "assistant", "content": gr.Audio(voice_reply,type='filepath',
-                                                                waveform_options=gr.WaveformOptions(show_recording_waveform=False))}) 
+    chat_history.append({"role": "assistant", "content": gr.Audio(voice_reply,type='filepath')}) 
     #chat_history.append(("assistant", voice_reply))
     chat_history.append({"role": "assistant", "content": reply})
     
