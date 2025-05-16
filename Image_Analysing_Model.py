@@ -10,6 +10,9 @@ os.environ['KMP_DUPLICATE_LIB_OK']= 'True'
 GROQ_API_KEY = os.environ.get('GROQ_API_KEY')
 
 #convert image to required format:
+#Base64 converts binary image data into a textual format, making it safe to send via HTTP requests in JSON payloads.
+#Web protocols and most REST APIs expect data to be encoded in text, not binary.Base64 ensures that image data doesn’t break the structure or expectations of the web request format.
+
 image_path ='acne.jpg'
 
 def encode_image(image_path):
